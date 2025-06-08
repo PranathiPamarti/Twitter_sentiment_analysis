@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Twitter Sentiment Analysis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 8px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      background: #fff;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .positive {
+      border-left: 6px solid green;
+    }
+    .negative {
+      border-left: 6px solid red;
+    }
+  </style>
+</head>
+<body>
+  <h1>Twitter Sentiment Analysis</h1>
+  <p>Enter a topic or hashtag to analyze:</p>
+  <input type="text" id="topicInput" placeholder="e.g. AI, #Python" />
+  <button onclick="analyzeSentiment()">Analyze</button>
+
+  <h2>Results for: <span id="topicDisplay"></span></h2>
+  <ul id="resultsList"></ul>
+
+  <script>
+    async function analyzeSentiment() {
+      const topic = document.getElementById('topicInput').value.trim();
+      if (!topic) {
+        alert('Please enter a topic!');
+        return;
+      }
+
+      document.getElementById('topicDisplay').textContent = topic;
+      const resultsList = document.getElementById('resultsList');
+      resultsList.innerHTML = 'Loading...';
+
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/analyze?topic=${encodeURIComponent(topic)}`);
+        if (!response.ok) throw new Error('API error');
+
+        const data = await response.json();
+        resultsList.innerHTML = '';
+
+        if (data.results && data.results.length > 0) {
+          data.results.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item.tweet;
+            li.className = item.sentiment.toLowerCase();
+            li.title = `Sentiment: ${item.sentiment}`;
+            resultsList.appendChild(li);
+          });
+        } else {
+          resultsList.textContent = 'No results found.';
+        }
+      } catch (error) {
+        resultsList.textContent = 'Error fetching results. Make sure the backend is running.';
+      }
+    }
+  </script>
+</body>
+</html>
